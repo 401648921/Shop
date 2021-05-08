@@ -1,0 +1,242 @@
+<template>
+<span class="form-box">
+  <span class="login-title">
+    <p>重置密码</p>
+    <span></span>
+  </span>
+
+  <form>
+    <span class="user-input">
+      <input v-model="form.stuNo" type="text" placeholder="学号">
+    </span>
+    <span class="user-input">
+      <input  v-model="form.code" type="text" placeholder="请输入验证码">
+      <el-button @click="getCode" round class="button-admin" v-text="'获取验证码'"></el-button>
+    </span>
+    <span class="user-input">
+       <span v-show="!passwordShow" @click="passwordShow=true" class="look-icon icon-goyanjing1 iconfont-go"></span>
+      <span v-show="passwordShow" @click="passwordShow=false" class="look-icon icon-goyanjing iconfont-go"></span>
+      <input v-model="form.password" :type="passwordType" placeholder="设置密码: 6-16位字符，包含字母和数字">
+    </span>
+    <span class="user-input">
+      <span v-show="!repasswordShow" @click="repasswordShow=true" class="look-icon icon-goyanjing1 iconfont-go"></span>
+      <span v-show="repasswordShow" @click="repasswordShow=false" class="look-icon icon-goyanjing iconfont-go"></span>
+      <input v-model="form.repassword" :type="repasswordType" placeholder="旧密码">
+    </span>
+      <el-button @click="submit" class="submit-admin" type="success" round>修改密码</el-button>
+      <span class="admin-tansfer">
+        <p>已有账号？</p>
+        <router-link :to="{ path: '/admin/sign'}" push>马上登录</router-link>
+      </span>
+  </form>
+</span>
+</template>
+
+<script>
+export default {
+  created () {
+    if (sessionStorage.getItem('store')) {
+      this.$store.replaceState(Object.assign({}, this.$store.state, JSON.parse(sessionStorage.getItem('store'))))
+    }
+    window.addEventListener('beforeunload', () => {
+      sessionStorage.setItem('store', JSON.stringify(this.$store.state))
+    })
+  },
+  data() {
+      return {
+        form: {
+          stuNo :'',
+          code:'',
+          password: '',
+          repassword:''
+        },
+        value:60,
+        repasswordShow:false,
+        passwordShow:false
+      }
+    },
+    methods: {
+      timeShow(){
+        this.value= (this.value+59)%60;
+      },
+      getCode(){
+        if(this.form.stuNo==''){
+          this.$alert('请先输入学号','提示',{
+            confirmButtonText:'确定'
+          });
+          return;
+        }
+        this.$axios({
+          method:'post',
+          url:'/api/code',
+          params: {
+            id: this.form.stuNo,
+            status:3
+          }
+        }).then(resp=>{
+          this.$alert('邮件已发送','提示',{
+            confirmButtonText:'确定'
+          });
+        }).catch(function(error){
+          alert(error.url);
+        })
+      },
+      submit:function(){
+        if(this.form.password==''){
+           this.$alert('密码不能为空','提示',{
+            confirmButtonText:'确定'
+          });
+          return;
+        }
+        if(this.form.repassword==''){
+           this.$alert('旧密码不能为空','提示',{
+            confirmButtonText:'确定'
+          });
+          return;
+        }
+        if(this.form.stuNo==''){
+           this.$alert('学号不能为空','提示',{
+            confirmButtonText:'确定'
+          });
+          return;
+        }
+        if(this.form.code==''){
+           this.$alert('验证码不能为空','提示',{
+            confirmButtonText:'确定'
+          });
+          return;
+        }
+        this.$axios({
+          method:'post',
+          url:'/api/changePassword',
+          params: {
+            code: this.form.code,
+            id:this.form.stuNo,
+            newPassword:this.$md5(this.form.password),
+            oldPassword:this.$md5(this.form.repassword)
+          }
+        }).then(resp=>{
+          alert(this.form.code);
+          alert(resp.data.code);
+          if(resp.data.code==403){
+            this.$alert('验证码错误','提示',{
+              confirmButtonText:'确定'
+            });
+            return;
+          }
+          if(resp.data.code==-1){
+            this.$alert('用户旧密码输入错误','提示',{
+              confirmButtonText:'确定'
+            });
+            return;
+          }
+          this.$alert('修改成功','提示',{
+            confirmButtonText:'确定'
+          });
+          this.$router.push('/admin/sign');
+        }).catch(function(error){
+          alert(error.url);
+        })
+      }
+    },
+    mounted () {
+      this.timer= setInterval(this.timeShow,1000);
+    },
+    computed: {
+      repasswordType(){
+        if(this.repasswordShow==false){
+          return 'password';
+        }else{
+          return 'text';
+        }
+      },
+      passwordType(){
+        if(this.passwordShow==false){
+          return 'password';
+        }else{
+          return 'text';
+        }
+      }
+    },
+
+}
+</script>
+
+<style>
+.look-icon{
+  font-size: 30px;
+  position: absolute;
+  left:800px;
+}
+.input{
+  border:none;
+  border-bottom: 1px solid #000
+}
+.login-title{
+  margin-top: 30px;
+  display: inline-block;
+  margin-bottom: 10px;
+}
+.login-title span{
+  display: block;
+  margin-top:-5px;
+  margin-left:10px;
+  border-bottom: 2px solid #03bb7a;
+  width:45px;
+}
+.user-input input{
+  border:none;
+  height: 35px;
+  font-size: 15px;
+  /*border-bottom: 1px solid #dbdbdb;*/
+  outline:none;
+  width:380px;
+}
+.user-input{
+  display: inline-block;
+  margin-top:30px;
+  width:380px;
+  margin-left: 0px;
+  border-bottom: 1px solid #dbdbdb;
+}
+.button-admin{
+  position: absolute;
+  right:50px;
+  top:180px;
+  border: 1px solid green;
+  width:140px;
+  color: green;
+}
+.button-admin:hover{
+  border: 1px solid green;
+  color: green;
+}
+.check-admin{
+  margin-top:10px;
+  right:30px;
+
+}
+.check-admin a{
+  color: #03bb7a;
+}
+.submit-admin{
+  position: relative;
+  display: block;
+  width:350px;
+  height:50px;
+  top:30px;
+  left:65px;
+}
+.admin-tansfer p{
+  display: inline-block;
+}
+.admin-tansfer{
+  position: relative;
+  top:30px;
+  display: block;
+  font-size: 10px;
+}
+.admin-tansfer a {
+  color: #03bb7a;
+}
+</style>

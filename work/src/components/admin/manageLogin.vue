@@ -1,0 +1,190 @@
+<template>
+<span class="form-box">
+  <span class="login-title">
+    <p>免费注册</p>
+    <span></span>
+  </span>
+
+  <form>
+    <span class="user-input">
+      <input v-model="form.manageCode" type="text" placeholder="管理员邀请码">
+    </span>
+    <span class="user-input">
+      <input v-model="form.stuNo" type="text" placeholder="学号">
+    </span>
+    <span class="user-input">
+      <input v-model="form.code" type="text" placeholder="验证码">
+      <el-button @click="getCode" round class="button-admin">获取验证码</el-button>
+    </span>
+    <span class="user-input">
+      <span v-show="!passwordShow" @click="passwordShow=true" class="look-icon icon-goyanjing1 iconfont-go"></span>
+      <span v-show="passwordShow" @click="passwordShow=false" class="look-icon icon-goyanjing iconfont-go"></span>
+      <input v-model="form.password" :type="passwordType" placeholder="设置密码: 6-16位字符，包含字母和数字">
+    </span>
+    <span class="user-input">
+      <span v-show="!repasswordShow" @click="repasswordShow=true" class="look-icon icon-goyanjing1 iconfont-go"></span>
+      <span v-show="repasswordShow" @click="repasswordShow=false" class="look-icon icon-goyanjing iconfont-go"></span>
+      <input v-model="form.repassword" :type="repasswordType" placeholder="确认密码">
+    </span>
+    <el-checkbox  class="check-admin">
+      我已阅读并同意
+      <a href="#">《##服务协议》</a>
+      <a href="#">《隐私政策》</a>
+      </el-checkbox>
+      <el-button class="submit-admin" type="success" round>注册账号</el-button>
+      <span class="admin-tansfer">
+        <p>已有账号？</p>
+        <router-link  :to="{ path: '/admin/sign'}" push>马上登录</router-link>
+      </span>
+  </form>
+</span>
+</template>
+
+<script>
+export default {
+  created () {
+    if (sessionStorage.getItem('store')) {
+      this.$store.replaceState(Object.assign({}, this.$store.state, JSON.parse(sessionStorage.getItem('store'))))
+    }
+    window.addEventListener('beforeunload', () => {
+      sessionStorage.setItem('store', JSON.stringify(this.$store.state))
+    })
+  },
+  data() {
+      return {
+        form: {
+          stuNo :'',
+          code:'',
+          password: '',
+          repassword:'',
+          manageCode:''
+        },
+        repasswordShow:false,
+        passwordShow:false
+      }
+    },
+    methods: {
+      getCode(){
+        if(this.form.stuNo==''){
+          this.$alert('请先输入学号','提示',{
+            confirmButtonText:'确定'
+          });
+          return;
+        }
+        this.$axios({
+          method:'post',
+          url:'/api/code',
+          params: {
+            id: this.form.stuNo,
+            status:1
+          }
+        }).then(resp=>{
+          this.$alert('邮件已发送','提示',{
+            confirmButtonText:'确定'
+          });
+        }).catch(function(error){
+          alert(error.url);
+        })
+      }
+    },
+    computed: {
+
+      repasswordType(){
+        if(this.repasswordShow==false){
+          return 'password';
+        }else{
+          return 'text';
+        }
+      },
+      passwordType(){
+        if(this.passwordShow==false){
+          return 'password';
+        }else{
+          return 'text';
+        }
+      }
+    }
+}
+</script>
+
+<style>
+form{
+  position: relative;
+  top:-45px;
+}
+.look-icon{
+  font-size: 30px;
+  position: absolute;
+  left:800px;
+}
+.input{
+  border:none;
+  border-bottom: 1px solid #000
+}
+.login-title{
+  margin-top: 20px;
+  display: inline-block;
+  margin-bottom: 15px;
+}
+.login-title span{
+  display: block;
+  margin-top:-5px;
+  margin-left:10px;
+  border-bottom: 2px solid #03bb7a;
+  width:45px;
+}
+.user-input input{
+  border:none;
+  height: 35px;
+  font-size: 15px;
+  /*border-bottom: 1px solid #dbdbdb;*/
+  outline:none;
+  width:380px;
+}
+.user-input{
+  display: inline-block;
+  margin-top:30px;
+  width:380px;
+  margin-left: 0px;
+  border-bottom: 1px solid #dbdbdb;
+}
+.button-admin{
+  position: absolute;
+  right:50px;
+  top:160px;
+  border: 1px solid green;
+  color: green;
+}
+.button-admin:hover{
+  border: 1px solid green;
+  color: green;
+}
+.check-admin{
+  margin-top:10px;
+  right:30px;
+
+}
+.check-admin a{
+  color: #03bb7a;
+}
+.submit-admin{
+  position: relative;
+  display: block;
+  width:350px;
+  height:50px;
+  top:30px;
+  left:65px;
+}
+.admin-tansfer p{
+  display: inline-block;
+}
+.admin-tansfer{
+  position: relative;
+  top:30px;
+  display: block;
+  font-size: 10px;
+}
+.admin-tansfer a {
+  color: #03bb7a;
+}
+</style>

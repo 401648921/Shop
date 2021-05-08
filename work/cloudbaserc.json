@@ -1,0 +1,18 @@
+{
+    "envId": "hello-cloudbase-8gm7xrhfd5c881a0",
+    "version": "2.0",
+    "$schema": "https://framework-1258016615.tcloudbaseapp.com/schema/latest.json",
+    "functionRoot": "./functions",
+    "functions": [],
+    "framework": {
+        "name": "work",
+        "plugins": {
+            "website": {
+                "use": "@cloudbase/framework-plugin-website",
+                "inputs": {
+                    "outputPath": "./"
+                }
+            }
+        }
+    }
+}
